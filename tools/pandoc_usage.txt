@@ -1,0 +1,5 @@
+pandoc file.md -o file.pdf -M title="Title" --pdf-engine=xelatex \
+  -V documentclass=ctexart \
+  -V geometry:a4paper \
+  -V geometry:margin=2.54cm \
+  --include-in-header=tools/pandoc_cn_style.tex
