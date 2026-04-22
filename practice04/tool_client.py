@@ -285,8 +285,9 @@ def stream_llm(messages):
                         delta = chunk['choices'][0].get('delta', {})
                         if 'content' in delta:
                             content = delta['content']
-                            print(content, end='', flush=True)
-                            full_response += content
+                            if content is not None:
+                                print(content, end='', flush=True)
+                                full_response += content
                 except json.JSONDecodeError:
                     pass
         print()  # 换行
@@ -667,10 +668,9 @@ def main():
                 # 检查是否需要总结聊天历史
                 # 计算聊天历史长度
                 history_length = sum(len(msg.get('content', '')) for msg in chat_history)
-                # 过滤掉系统消息和工具消息，计算实际聊天轮数
-                actual_rounds = len([msg for msg in chat_history if msg['role'] in ['user', 'assistant']])
                 
-                if actual_rounds > 5 or history_length > 3000:
+                # 每5轮对话总结一次，或者上下文超过3000字符时总结
+                if (chat_rounds >= 5 and chat_rounds % 5 == 0) or history_length > 3000:
                     print("正在总结聊天历史...")
                     chat_history = summarize_chat_history(chat_history)
                 

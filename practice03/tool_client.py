@@ -246,8 +246,9 @@ def stream_llm(messages):
                         delta = chunk['choices'][0].get('delta', {})
                         if 'content' in delta:
                             content = delta['content']
-                            print(content, end='', flush=True)
-                            full_response += content
+                            if content is not None:
+                                print(content, end='', flush=True)
+                                full_response += content
                 except json.JSONDecodeError:
                     pass
         print()  # 换行
