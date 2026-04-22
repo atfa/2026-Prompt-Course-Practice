@@ -171,7 +171,7 @@ def anythingllm_query(message):
         ]
         
         # 执行curl命令，添加超时控制
-        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '30'))
+        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '300'))
         result = subprocess.run(
             curl_command,
             capture_output=True,
@@ -191,7 +191,7 @@ def anythingllm_query(message):
         except json.JSONDecodeError:
             return json.dumps({"status": "error", "message": f"响应解析失败: {result.stdout}"}, ensure_ascii=False)
     except subprocess.TimeoutExpired:
-        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '30'))
+        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '300'))
         return json.dumps({
             "status": "error", 
             "message": f"请求超时（{timeout_sec}秒），请检查 AnythingLLM 服务是否正常运行"
@@ -751,10 +751,9 @@ def main():
                 # 检查是否需要总结聊天历史
                 # 计算聊天历史长度
                 history_length = sum(len(msg.get('content', '')) for msg in chat_history)
-                # 过滤掉系统消息和工具消息，计算实际聊天轮数
-                actual_rounds = len([msg for msg in chat_history if msg['role'] in ['user', 'assistant']])
                 
-                if actual_rounds > 5 or history_length > 3000:
+                # 每5轮对话总结一次，或者上下文超过3000字符时总结
+                if (chat_rounds >= 5 and chat_rounds % 5 == 0) or history_length > 3000:
                     print("正在总结聊天历史...")
                     chat_history = summarize_chat_history(chat_history)
                 
