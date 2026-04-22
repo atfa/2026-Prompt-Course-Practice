@@ -1,4 +1,7 @@
-pandoc file.md -o file.pdf -M title="Title" --pdf-engine=xelatex \
+pandoc file.md -o file.pdf \
+  -M title="Title" \
+  --pdf-engine=xelatex \
+  --pdf-engine-opt=-interaction=nonstopmode \
   -V documentclass=ctexart \
   -V geometry:a4paper \
   -V geometry:margin=2.54cm \

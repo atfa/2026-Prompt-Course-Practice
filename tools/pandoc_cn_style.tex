@@ -1,12 +1,21 @@
 % Pandoc PDF style for Chinese survey reports
+% Cover page template for 成都东软学院实验报告
+
+% === 封面相关宏包 ===
 \usepackage{fontspec}
 \usepackage{xeCJK}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{setspace}
+
+% === 正文相关宏包 ===
 \usepackage{indentfirst}
 \usepackage{titlesec}
-\usepackage{graphicx}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{etoolbox}
+\usepackage{fancyhdr}
 
 % Font families with fallbacks for macOS/TeX Live
 \newCJKfontfamily\fontheiti{Heiti SC}
@@ -31,11 +40,13 @@
 \newCJKfontfamily\fontsongti{Songti SC}
 
 % Body text: Fangsong, size 3 (16pt), fixed leading 28pt
-\AtBeginDocument{\fontfangsong\fontsize{16pt}{28pt}\selectfont}
-\setlength{\parindent}{2em}
-\setlength{\parskip}{0pt}
+\AtBeginDocument{
+  \fontfangsong\fontsize{16pt}{28pt}\selectfont
+  \setlength{\parindent}{2em}
+  \setlength{\parskip}{0pt}
+}
 % Keep metadata title only for header; do not print a separate maketitle block
-\AtBeginDocument{\let\maketitle\relax}
+\let\maketitle\relax
 
 % Tables: Songti, size 4 (14pt), single line spacing
 \AtBeginEnvironment{tabular}{\fontsongti\fontsize{14pt}{14pt}\selectfont\renewcommand{\arraystretch}{1}}
@@ -70,7 +81,6 @@
 \makeatletter
 \let\ps@plain\ps@empty
 \makeatother
-\usepackage{fancyhdr}
 \fancypagestyle{plain}{
   \fancyhf{}
   \fancyfoot[C]{\thepage}
