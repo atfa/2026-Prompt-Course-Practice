@@ -92,7 +92,8 @@ def fetch_webpage(url):
         # 确保路径正确编码
         path = quote(path, safe='/')
         if parsed_url.query:
-            path += '?' + parsed_url.query
+            # 正确编码查询参数，保留 & 和 = 用于分隔参数
+            path += '?' + quote(parsed_url.query, safe='=&%+')
         protocol = parsed_url.scheme
         
         # 根据协议选择连接类型
@@ -125,7 +126,8 @@ def fetch_webpage(url):
 # 工具函数7：搜索聊天历史
 def search_chat_history(query):
     try:
-        log_path = "/Users/atfa/Desktop/实验报告/log.txt"
+        # 从环境变量获取 log.txt 路径，默认为项目根目录下
+        log_path = os.getenv('LOG_PATH', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'log.txt'))
         if not os.path.exists(log_path):
             return json.dumps({"status": "error", "message": "聊天历史文件不存在"}, ensure_ascii=False)
         
@@ -418,7 +420,7 @@ def extract_key_info(chat_history):
             key_info = "关键信息提取失败"
     
     # 写入log.txt文件
-    log_path = "/Users/atfa/Desktop/实验报告/log.txt"
+    log_path = os.getenv('LOG_PATH', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'log.txt'))
     # 确保目录存在
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     

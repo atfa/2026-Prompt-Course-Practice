@@ -4,6 +4,8 @@ import http.client
 import ssl
 from urllib.parse import urlparse
 import sys
+import threading
+import time
 
 # 读取.env文件
 def load_env():
@@ -71,6 +73,8 @@ def stream_llm(messages):
         
         # 处理流式响应
         full_response = ""
+        first_content = True
+        
         for line in response:
             line = line.decode().strip()
             if not line:
@@ -83,9 +87,15 @@ def stream_llm(messages):
                     chunk = json.loads(line)
                     if 'choices' in chunk and len(chunk['choices']) > 0:
                         delta = chunk['choices'][0].get('delta', {})
-                        if 'content' in delta:
+                        if 'content' in delta and delta['content'] is not None:
                             content = delta['content']
-                            print(content, end='', flush=True)
+                            # 在新的一行输出内容
+                            if first_content:
+                                print()
+                                print(content, end='', flush=True)
+                                first_content = False
+                            else:
+                                print(content, end='', flush=True)
                             full_response += content
                 except json.JSONDecodeError:
                     pass
@@ -107,17 +117,36 @@ def main():
     
     try:
         while True:
-            # 获取用户输入
+            # 获取用户输入（不显示加载动画）
             user_input = input("你: ")
             
             # 添加用户消息到历史
             chat_history.append({"role": "user", "content": user_input})
             
-            # 显示助手回复
-            print("助手: ", end='', flush=True)
+            # 显示助手回复冒号
+            print("助手:", end='', flush=True)
+            
+            # 启动加载动画：每0.5秒显示一个点
+            loading_stop_event = threading.Event()
+            
+            def show_loading():
+                """每0.5秒显示一个点"""
+                while not loading_stop_event.is_set():
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                    loading_stop_event.wait(0.5)
+            
+            loading_thread = threading.Thread(target=show_loading, daemon=True)
+            loading_thread.start()
             
             # 调用LLM并流式输出
             assistant_response = stream_llm(chat_history)
+            
+            # 停止加载动画
+            loading_stop_event.set()
+            loading_thread.join(timeout=0.5)
+            
+            print()  # 换行
             
             if assistant_response is None:
                 print("请求失败")
@@ -128,6 +157,9 @@ def main():
             print()  # 空行分隔
     except KeyboardInterrupt:
         print("\n退出聊天客户端")
+        sys.exit(0)
+    except EOFError:
+        print("\n输入流结束，退出聊天客户端")
         sys.exit(0)
 
 if __name__ == "__main__":

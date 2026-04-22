@@ -93,7 +93,8 @@ def fetch_webpage(url):
         # 确保路径正确编码
         path = quote(path, safe='/')
         if parsed_url.query:
-            path += '?' + parsed_url.query
+            # 正确编码查询参数，保留 & 和 = 用于分隔参数
+            path += '?' + quote(parsed_url.query, safe='=&%+')
         protocol = parsed_url.scheme
         
         # 根据协议选择连接类型
@@ -126,7 +127,8 @@ def fetch_webpage(url):
 # 工具函数7：搜索聊天历史
 def search_chat_history(query):
     try:
-        log_path = "/Users/atfa/Desktop/实验报告/log.txt"
+        # 从环境变量获取 log.txt 路径，默认为项目根目录下
+        log_path = os.getenv('LOG_PATH', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'log.txt'))
         if not os.path.exists(log_path):
             return json.dumps({"status": "error", "message": "聊天历史文件不存在"}, ensure_ascii=False)
         
@@ -168,12 +170,14 @@ def anythingllm_query(message):
             "-d", payload
         ]
         
-        # 执行curl命令
+        # 执行curl命令，添加超时控制
+        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '30'))
         result = subprocess.run(
             curl_command,
             capture_output=True,
             text=True,
-            encoding='utf-8'
+            encoding='utf-8',
+            timeout=timeout_sec
         )
         
         # 检查执行结果
@@ -186,6 +190,12 @@ def anythingllm_query(message):
             return json.dumps({"status": "success", "data": response_data}, ensure_ascii=False)
         except json.JSONDecodeError:
             return json.dumps({"status": "error", "message": f"响应解析失败: {result.stdout}"}, ensure_ascii=False)
+    except subprocess.TimeoutExpired:
+        timeout_sec = int(os.getenv('ANYTHINGLLM_TIMEOUT', '30'))
+        return json.dumps({
+            "status": "error", 
+            "message": f"请求超时（{timeout_sec}秒），请检查 AnythingLLM 服务是否正常运行"
+        }, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)}, ensure_ascii=False)
 
@@ -471,7 +481,7 @@ def extract_key_info(chat_history):
             key_info = "关键信息提取失败"
     
     # 写入log.txt文件
-    log_path = "/Users/atfa/Desktop/实验报告/log.txt"
+    log_path = os.getenv('LOG_PATH', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'log.txt'))
     # 确保目录存在
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     

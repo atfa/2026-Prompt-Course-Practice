@@ -91,7 +91,8 @@ def fetch_webpage(url):
         # 确保路径正确编码
         path = quote(path, safe='/')
         if parsed_url.query:
-            path += '?' + parsed_url.query
+            # 正确编码查询参数，保留 & 和 = 用于分隔参数
+            path += '?' + quote(parsed_url.query, safe='=&%+')
         protocol = parsed_url.scheme
         
         # 根据协议选择连接类型
